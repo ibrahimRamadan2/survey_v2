@@ -1,35 +1,62 @@
 from rest_framework import serializers 
-from base_survey.models import BaseSurvey , Question ,QuestionType , Choise
+from base_survey.models import BaseSurvey , Question , Choise
 import datetime
            
-class QuestionSerializer(serializers.ModelSerializer):
+
+class ChoiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model =Choise 
+        exclude = ('question', )
+    
+
+class QuestionSerialzer(serializers.ModelSerializer):
+    choices = ChoiceSerializer(many=True, required=False)  
+
+    def create(self, validated_data):
+        choices = validated_data.pop('choices')
+        question = Question.objects.create(**validated_data)
+        for choice in choices:
+            Choise.objects.create(question= question , **choice)
+        return question
+    
     class Meta:
         model = Question
-        fields = '__all__' 
-    
-    def create(self,validated_data):
-        type = validated_data.pop("type")
-        type = QuestionType.get_type(type)
-        question = Question.create(type=type , **validated_data)
-        return question
+        exclude = ('survey', )
 
-    def update(self, instance, validated_data):
-                    # quest  , new quest 
-        instance.content = validated_data.get("content" ,instance.content )
-        if "question_type" in validated_data:
-            instance.question_type =QuestionType.get_type(validated_data["question_type"])
-        instance.order = validated_data.get("order" ,instance.order)
-        instance.required = validated_data.get("required" ,instance.required)
-        if instance.is_valid():
+class SurveySerializer(serializers.ModelSerializer):
+    questions = QuestionSerialzer(many=True, required=False)
+
+    def create_questions(self ,survey , questions):
+        for question in questions:
+            choices = question.pop("choices")
+            question = Question.objects.create(survey=survey ,**question)
+            for choice in choices:
+                Choise.objects.create(question=question , **choice)
+        
+    def create(self, validated_data):
+        questions = validated_data.pop("questions")
+        survey = BaseSurvey.objects.create(**validated_data)
+        self.create_questions(survey , questions)
+        return survey
+ 
+    def update(self, instance ,validated_data):
+        try:
+            questions = validated_data.pop("questions")
+            instance.questions.all().delete()
+            self.create_questions(instance , questions)
             instance.save()
+            print(instance)
             return instance
-        raise Exception("Can't update Question , please check")
+        except Exception as e :
+            print(e)
+
     
 
-class ChoiseSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Choise
-        fields = '__all__' 
+        model = BaseSurvey
+        fields = '__all__'
+
+
 
 """
  json body to create or edit survey with question looks like : 
@@ -54,30 +81,7 @@ class ChoiseSerializer(serializers.ModelSerializer):
 }
 
 """
-class SurveySerializer(serializers.ModelSerializer):
-    questions = QuestionSerializer(many=True)
-    class Meta:
-        model = BaseSurvey
-        fields = '__all__' 
-
-    def create(self,validated_data):
-        question_data = validated_data.pop("questions")
-        survey = BaseSurvey.objects.create(**validated_data)
-        for question in question_data:
-            Question.objects.create(survey=survey , **question)
-        return survey
-    
-    def update(self, instance, validated_data):
-        #### need to fix 
-        questions = validated_data.pop("questions")
-        survey = BaseSurvey(**validated_data)
-        instance.copy_survey(survey)
-        instance.question_set.all().delete()
-        for question in questions:
-            instance.question_set.create(**question)
-        return instance
-
-        
+ 
         
 
     

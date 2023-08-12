@@ -1,7 +1,6 @@
 from django.contrib import admin
 from .models import BaseSurvey
 from .models import Question
-from .models import QuestionType
 # Register your models here.
 
 
