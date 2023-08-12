@@ -1,19 +1,45 @@
 Survey requirements : 
 	- CRUD Survey 
-		- each survey has many questions and answers .
-			- each question as content and answers and props like (required , optional)
-			- each question has type like :
-				1- MCQ   2- true , false  
-				3-select many choices  4-question and full text 
-				
-	- each survey has time to finish
-	- recieve the answers 
-	- show the answers in aggrigated way to survey owner
-		- in each question show how many people choosed this answer ...    
-	- show each answer 
+		- create survey : 
+			- craeting servey with just name and is fine
+			- edit servey is available until it's published 
+			- show servey with statistics for each question (aggregation and comparison)
+			- delete survey 
+			- user can't fill survey if it's (paused , is_deleted , out of data [end_at field in DB])
+
+Question requirements : 
+	- create Questions 
+		- must select a type (MCQ , [True , False] , full text)
+		- must have content 
+		- if type (MCQ , [true , false] )  then user must provide choices  
+			- if MCQ the provide 3 answers (a,b,c)
+			- if MCQ the provide 2 answers (True , False)
+		- each question has options 
+			- required
+			- ......
+	- Edit Questions 
+		- user can only edit if the survey isn't publisher to clients 
+	- Delete Question 
+		user Can Delete Questions if the survey isn't publisher to clients 
+
+ 
+
+Answer requirements : 
+	- User can submit the answer for each question and take care of question options (required or not ) 
+	- user can't fill survey if it's (paused , is_deleted , out of data [end_at field in DB])
+
+	
+User requirements : 
+	- User auth 
+	- User search in surveys
+	- User see survey statistics 
 
 
-	-- User auth 
-	-- User search in surveys 
+
+
+
+Coming soon features : 
+- share sprint with other users . 
+- limit the number of users and then subscribe .... 
 
 
